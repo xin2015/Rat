@@ -1,4 +1,4 @@
-﻿// https://github.com/xin2015/Rat/kriging/ v1.0.0 Copyright 2020 xin2015
+﻿// https://github.com/xin2015/Rat/ v1.0.0 Copyright 2020 Lhx
 (function (global, factory) {
     typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
         typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -171,7 +171,7 @@
         return true;
     }
 
-
+    // Based on https://github.com/oeo4b/kriging.js/blob/master/kriging.js
     function kriging() {
         var model = 'exponential';
         var modelFunc = exponential;
