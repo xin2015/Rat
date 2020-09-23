@@ -1,0 +1,49 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+</div>
+
+@section Scripts{
+    <script src="~/js/kriging.js"></script>
+    <script src="~/js/rat-kriging.min.js"></script>
+    <script type="text/javascript">
+        var T = [];
+        var X = [];
+        var Y = [];
+        // 模拟数据
+        for (var i = 0; i < 50; i++) {
+            X.push((Math.random() - 0.5) * 359);
+            Y.push((Math.random() - 0.5) * 180);
+            T.push(Math.round(Math.random() * 200));
+        }
+        var model = "exponential";
+        var sigma2 = 0,
+            alpha = 100;
+        var variogram1 = kriging.train(T, X, Y, model, sigma2, alpha);
+        var variogram2 = kriging.train(T, X, Y, model, 0.1, alpha);
+        var kriging1 = rat.kriging().sigma2(sigma2).train(T, X, Y);
+        var kriging2 = rat.kriging().sigma2(0.1).train(T, X, Y);
+        console.log(variogram1);
+        console.log(variogram2);
+        console.log(kriging1);
+        console.log(kriging2);
+        for (var i = 0; i < 50; i++) {
+            var x = (Math.random() - 0.5) * 359;
+            var y = (Math.random() - 0.5) * 180;
+            //var t1 = kriging.predict(x, y, variogram1);
+            //var t2 = kriging.predict(x, y, variogram2);
+            //var u1 = kriging1.predict(x, y);
+            //var u2 = kriging2.predict(x, y);
+            var t1 = kriging.variance(x, y, variogram1);
+            var t2 = kriging.variance(x, y, variogram2);
+            var u1 = kriging1.variance(x, y);
+            var u2 = kriging2.variance(x, y);
+            console.log(t1 == u1);
+            console.log(t2 == u2);
+        }
+    </script>
+}

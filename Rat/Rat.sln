@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30503.244
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rat.Web", "Rat.Web\Rat.Web.csproj", "{C39912B8-67B6-4C8F-83F9-F25EC55A42A3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rat.Core", "Rat.Core\Rat.Core.csproj", "{5B6DE17B-CB2C-4D29-AE40-4F8E28538CBC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C39912B8-67B6-4C8F-83F9-F25EC55A42A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C39912B8-67B6-4C8F-83F9-F25EC55A42A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C39912B8-67B6-4C8F-83F9-F25EC55A42A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C39912B8-67B6-4C8F-83F9-F25EC55A42A3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5B6DE17B-CB2C-4D29-AE40-4F8E28538CBC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5B6DE17B-CB2C-4D29-AE40-4F8E28538CBC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5B6DE17B-CB2C-4D29-AE40-4F8E28538CBC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5B6DE17B-CB2C-4D29-AE40-4F8E28538CBC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FF6E5DE4-7BCD-414F-88EF-D01BD5F66035}
+	EndGlobalSection
+EndGlobal
