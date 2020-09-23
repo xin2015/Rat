@@ -3,8 +3,7 @@
     typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
         typeof define === 'function' && define.amd ? define(['exports'], factory) :
             (global = global || self, factory(global.rat = global.rat || {}));
-}(this, (function (exports) {
-    'use strict';
+}(this, (function (exports) { 'use strict';
 
     function rep(c, n) {
         var t = Array(n);
