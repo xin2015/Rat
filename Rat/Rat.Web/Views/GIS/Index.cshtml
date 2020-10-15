@@ -1,0 +1,386 @@
+﻿
+@{
+    ViewData["Title"] = "Index";
+}
+
+<link rel="stylesheet" href="https://openlayers.org/en/v4.6.5/css/ol.css" type="text/css">
+<div id="map" class="map"></div>
+<canvas id="legend" class="legend"></canvas>
+
+@section Scripts{
+    <script src="https://openlayers.org/en/v4.6.5/build/ol.js"></script>
+    <script src="~/js/kriging.js"></script>
+    <script type="text/javascript">
+        var gridExtent = [7514065.628545966, 1252344.271424327, 16280475.528516263,
+            7514065.628545967
+        ]; // 格点场坐标范围（xMin，yMin，xMax，yMax）
+        var gridResolution; // 格点场分辨率
+        var gridN, gridM; // 格点场行数，列数
+        var chinaCenter = ol.proj.fromLonLat([104.113106, 37.570693]); // 中国矩心
+        var initZoom = 5; // 初始缩放
+        var projection = ol.proj.get('EPSG:3857'); // 投影坐标系
+        var projectionExtent = projection.getExtent(); // 投影坐标系范围
+        var projectionSize = ol.extent.getWidth(projectionExtent) / 256;
+        var minZoom = 1;
+        var maxZoom = 8;
+        var resolutions = [];
+        for (var i = 0; i <= 19; i++) {
+            resolutions[i] = projectionSize / Math.pow(2, i);
+        }
+        gridResolution = resolutions[4];
+        gridN = Math.round((gridExtent[3] - gridExtent[1]) / gridResolution) + 1;
+        gridM = Math.round((gridExtent[2] - gridExtent[0]) / gridResolution) + 1;
+        var wrapX = true;
+        var isGradient = true;
+        var colors = [{
+            r: 128,
+            g: 214,
+            b: 0
+        }, {
+            r: 0,
+            g: 228,
+            b: 0
+        }, {
+            r: 255,
+            g: 255,
+            b: 0
+        }, {
+            r: 255,
+            g: 126,
+            b: 0
+        }, {
+            r: 255,
+            g: 0,
+            b: 0
+        }, {
+            r: 153,
+            g: 0,
+            b: 76
+        }, {
+            r: 126,
+            g: 0,
+            b: 35
+        }, {
+            r: 108,
+            g: 0,
+            b: 8
+        }];
+        var gradients = [0, 25, 75, 125, 175, 250, 400, 500];
+        var levels = [0, 50, 100, 150, 200, 300, 500];
+        // 获取颜色
+        function getColor(lt) {
+            var r, g, b;
+            if (isGradient) {
+                for (var k = 1, l = 0; k < gradients.length; l = k++) {
+                    if (lt <= gradients[k]) {
+                        var p = (lt - gradients[l]) / (gradients[k] - gradients[l]);
+                        r = colors[l].r + Math.round(p * (colors[k].r - colors[l].r));
+                        g = colors[l].g + Math.round(p * (colors[k].g - colors[l].g));
+                        b = colors[l].b + Math.round(p * (colors[k].b - colors[l].b));
+                        break;
+                    }
+                }
+            } else {
+                for (var k = 1; k < levels.length; k++) {
+                    if (lt <= levels[k]) {
+                        r = colors[k].r;
+                        g = colors[k].g;
+                        b = colors[k].b;
+                        break;
+                    }
+                }
+            }
+            return 'rgb(' + r + ',' + g + ',' + b + ')';
+        }
+
+        var vecSource = new ol.source.TileImage({
+            projection: projection,
+            tileGrid: new ol.tilegrid.TileGrid({
+                extent: projectionExtent,
+                minZoom: 1,
+                origin: ol.extent.getTopLeft(projectionExtent),
+                resolutions: resolutions,
+                tileSize: [256, 256]
+            }),
+            url: 'http://t{0-7}.tianditu.gov.cn/vec_w/wmts?tk=fdcab2d88e293c189daf038cd01592e6&layer=vec&style=default&tilematrixset=w&Service=WMTS&Request=GetTile&Version=1.0.0&Format=tiles&TileMatrix={z}&TileCol={x}&TileRow={y}',
+            wrapX: wrapX
+        });
+        var cvaSource = new ol.source.TileImage({
+            projection: projection,
+            tileGrid: new ol.tilegrid.TileGrid({
+                extent: projectionExtent,
+                minZoom: 1,
+                origin: ol.extent.getTopLeft(projectionExtent),
+                resolutions: resolutions,
+                tileSize: [256, 256]
+            }),
+            url: 'http://t{0-7}.tianditu.gov.cn/cva_w/wmts?tk=fdcab2d88e293c189daf038cd01592e6&layer=cva&style=default&tilematrixset=w&Service=WMTS&Request=GetTile&Version=1.0.0&Format=tiles&TileMatrix={z}&TileCol={x}&TileRow={y}',
+            wrapX: wrapX
+        });
+
+        var T = [];
+        var X = [];
+        var Y = [];
+        // 模拟数据
+        for (var i = 0; i < 50; i++) {
+            X.push(chinaCenter[0] + (Math.random() - 0.5) * gridResolution * (gridM - 1));
+            Y.push(chinaCenter[1] + (Math.random() - 0.5) * gridResolution * (gridN - 1));
+            T.push(Math.round(Math.random() * 200));
+        }
+        var model = "exponential";
+        var sigma2 = 0,
+            alpha = 100;
+        var variogram = kriging.train(T, X, Y, model, sigma2, alpha);
+        // 插值格点场数据
+        var gridData = [];
+        for (var i = 0; i < gridN; i++) {
+            var y = gridExtent[3] - i * gridResolution;
+            for (var j = 0; j < gridM; j++) {
+                var x = gridExtent[0] + j * gridResolution;
+                var t = Math.round(kriging.predict(x, y, variogram));
+                gridData[i * gridM + j] = t;
+            }
+        }
+
+        // 获取数据
+        function getData(x, y) {
+            var xp = (x - gridExtent[0]) / gridResolution;
+            var yp = (gridExtent[3] - y) / gridResolution;
+            var xi = Math.floor(xp);
+            var yi = Math.floor(yp);
+            return Math.round(bilinearInterpolate(xp - xi, yp - yi, gridData[yi * gridM + xi], gridData[yi * gridM + (
+                xi + 1)], gridData[(yi + 1) * gridM + xi], gridData[(yi + 1) * gridM + (xi + 1)]));
+        }
+
+        // 双线性插值
+        function bilinearInterpolate(x, y, g00, g10, g01, g11) {
+            var rx = (1 - x);
+            var ry = (1 - y);
+            var a = rx * ry,
+                b = x * ry,
+                c = rx * y,
+                d = x * y;
+            return g00 * a + g10 * b + g01 * c + g11 * d;
+        }
+        var tileSource = new ol.source.TileImage({
+            projection: projection,
+            tileGrid: new ol.tilegrid.TileGrid({
+                extent: projectionExtent,
+                minZoom: 5,
+                origin: ol.extent.getTopLeft(projectionExtent),
+                resolutions: resolutions,
+                tileSize: [256, 256]
+            }),
+            tileUrlFunction: function (tileCoord, pixelRatio, projection) {
+                var canvas = document.createElement('canvas');
+                canvas.width = 256;
+                canvas.height = 256;
+                var tileGrid = tileSource.getTileGrid();
+                var resolution = tileGrid.getResolution(tileCoord[0]);
+                var extent = tileGrid.getTileCoordExtent(tileCoord);
+                if (extent[0] >= gridExtent[0] && extent[1] >= gridExtent[1] && extent[2] <= gridExtent[
+                    2] && extent[3] <= gridExtent[3]) {
+                    // console.time("TileImage");
+                    var ctx = canvas.getContext("2d");
+                    // ctx.globalAlpha = 0.8;
+                    // 渲染
+                    var w = 4;
+                    for (var i = 0; i * w < 256; i++) {
+                        var y = extent[3] - (i + 0.5) * w * resolution;
+                        for (var j = 0; j * w < 256; j++) {
+                            var x = extent[0] + (j + 0.5) * w * resolution;
+                            var t = getData(x, y);
+                            ctx.fillStyle = getColor(t);
+                            ctx.fillRect(j * w, i * w, w, w);
+                        }
+                    }
+                    // 保留边界多边形内的部分
+                    //var coordinates = china.features[0].geometry.coordinates;
+                    //ctx.beginPath();
+                    //ctx.globalCompositeOperation = "destination-in"; //全局合成操作
+                    //for (var i = 0; i < coordinates.length; i++) {
+                    //    let polygon = coordinates[i];
+                    //    for (var j = 0; j < 1; j++) {
+                    //        var points = polygon[j];
+                    //        var point = ol.proj.fromLonLat(points[0]);
+                    //        let pixel = [(point[0] - extent[0]) / resolution - 0.5, (extent[3] - point[1]) /
+                    //            resolution - 0.5
+                    //        ];
+                    //        ctx.moveTo(pixel[0], pixel[1]);
+                    //        for (var k = 1; k < points.length; k++) {
+                    //            point = ol.proj.fromLonLat(points[k]);
+                    //            pixel = [(point[0] - extent[0]) / resolution - 0.5, (extent[3] - point[1]) /
+                    //                resolution - 0.5
+                    //            ];
+                    //            ctx.lineTo(pixel[0], pixel[1]);
+                    //        }
+                    //    }
+                    //}
+                    //ctx.fill();
+                    // console.timeEnd("TileImage");
+                }
+                return canvas.toDataURL();
+            },
+            wrapX: false
+        });
+
+        function getWind(x, y) {
+            var point = ol.proj.toLonLat([x, y]);
+            x = point[0] + 180;
+            y = 90 - point[1];
+            var xi = Math.floor(x);
+            var yi = Math.floor(y);
+            var windDataU = wind[0].data;
+            var windDataV = wind[1].data;
+            return [
+                bilinearInterpolate(x - xi, y - yi, windDataU[yi * 360 + xi], windDataU[yi * 360 + (xi + 1)],
+                    windDataU[(yi + 1) * 360 + xi], windDataU[(yi + 1) * 360 + (xi + 1)]),
+                bilinearInterpolate(x - xi, y - yi, windDataV[yi * 360 + xi], windDataV[yi * 360 + (xi + 1)],
+                    windDataV[(yi + 1) * 360 + xi], windDataV[(yi + 1) * 360 + (xi + 1)])
+            ];
+        }
+        var canvasSource = new ol.source.ImageCanvas({
+            canvasFunction: (extent, resolution, pixelRatio, size, projection) => {
+                var canvas = document.createElement('canvas');
+                canvas.width = size[0];
+                canvas.height = size[1];
+                var ctx = canvas.getContext("2d");
+                // ctx.globalAlpha = 0.6;
+                // ctx.strokeStyle = 'rgb(255,255,255)';
+                ctx.lineWidth = 2;
+                var w = 40,
+                    v = 2;
+                for (var i = 0; i * w < size[1]; i++) {
+                    var y = extent[3] - (i + 0.5) * w * resolution;
+                    for (var j = 0; j * w < size[0]; j++) {
+                        var x = extent[0] + (j + 0.5) * w * resolution;
+                        var windData = getWind(x, y);
+                        // ctx.save();
+                        // ctx.translate((j + 0.25) * w, (i + 0.25) * w);
+                        // ctx.beginPath();
+                        // ctx.moveTo(0, 0);
+                        // ctx.translate(windData[0] * v, windData[1] * v)
+                        // ctx.lineTo(0, 0);
+                        // ctx.rotate(Math.atan2(windData[1], windData[0]));
+                        // ctx.lineTo(-8, -6);
+                        // ctx.moveTo(0, 0);
+                        // ctx.lineTo(-8, 6);
+                        // ctx.stroke();
+                        // ctx.restore();
+
+                        ctx.save();
+                        ctx.translate((j + 0.25) * w, (i + 0.25) * w);
+                        ctx.beginPath();
+                        ctx.moveTo(0, 0);
+                        ctx.translate(windData[0] * v, windData[1] * v)
+                        ctx.lineTo(0, 0);
+                        ctx.rotate(Math.atan2(windData[1], windData[0]));
+                        ctx.stroke();
+                        ctx.beginPath();
+                        ctx.moveTo(0, 0);
+                        ctx.lineTo(-8, -4);
+                        ctx.lineTo(-8, 4);
+                        ctx.fill();
+                        ctx.restore();
+                    }
+                }
+
+                // 保留边界多边形内的部分
+                var coordinates = china.features[0].geometry.coordinates;
+                ctx.beginPath();
+                ctx.globalCompositeOperation = "destination-in"; //全局合成操作
+                for (var i = 0; i < coordinates.length; i++) {
+                    let polygon = coordinates[i];
+                    for (var j = 0; j < 1; j++) {
+                        var points = polygon[j];
+                        var point = ol.proj.fromLonLat(points[0]);
+                        let pixel = [(point[0] - extent[0]) / resolution - 0.5, (extent[3] - point[1]) /
+                            resolution - 0.5
+                        ];
+                        ctx.moveTo(pixel[0], pixel[1]);
+                        for (var k = 1; k < points.length; k++) {
+                            point = ol.proj.fromLonLat(points[k]);
+                            pixel = [(point[0] - extent[0]) / resolution - 0.5, (extent[3] - point[1]) /
+                                resolution - 0.5
+                            ];
+                            ctx.lineTo(pixel[0], pixel[1]);
+                        }
+                    }
+                }
+                ctx.fill();
+                return canvas;
+            },
+            ratio: 1
+        });
+
+
+        var map = new ol.Map({
+            layers: [
+                new ol.layer.Tile({
+                    source: vecSource
+                }),
+                new ol.layer.Tile({
+                    source: cvaSource
+                }),
+                new ol.layer.Tile({
+                    source: tileSource
+                }),
+                //new ol.layer.Image({
+                //    source: canvasSource
+                //})
+            ],
+            target: 'map',
+            controls: ol.control.defaults({ attribution: false }),
+            view: new ol.View({
+                center: chinaCenter,
+                zoom: initZoom,
+                minZoom: minZoom,
+                maxZoom: maxZoom
+            })
+        });
+
+        function initLegend() {
+            var canvas = document.getElementById('legend');
+            canvas.width = 32;
+            canvas.height = 516;
+            var ctx = canvas.getContext("2d");
+            var grd = ctx.createLinearGradient(0, 8, 0, 508);
+            grd.addColorStop(0, 'rgb(128,214,0)');
+            grd.addColorStop(0.05, 'rgb(0,228,0)');
+            grd.addColorStop(0.15, 'rgb(255,255,0)');
+            grd.addColorStop(0.25, 'rgb(255,126,0)');
+            grd.addColorStop(0.35, 'rgb(255,0,0)');
+            grd.addColorStop(0.5, 'rgb(153,0,76)');
+            grd.addColorStop(0.8, 'rgb(126,0,35)');
+            grd.addColorStop(1, 'rgb(108,0,8)');
+
+            ctx.shadowBlur = 10;
+            ctx.shadowOffsetX = 2;
+            ctx.shadowOffsetY = 2;
+            ctx.shadowColor = "black";
+            ctx.fillStyle = grd;
+            ctx.fillRect(0, 0, 32, 516);
+
+            ctx.fillStyle = 'rgb(255,255,255)';
+            ctx.font = '16px sans-serif';
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText('0', 16, 8);
+            ctx.fillText('50', 16, 58);
+            ctx.fillText('100', 16, 108);
+            ctx.fillText('150', 16, 158);
+            ctx.fillText('200', 16, 208);
+            ctx.fillText('300', 16, 308);
+            ctx.fillText('500', 16, 508);
+
+            canvas.onmousemove = function (evt) {
+                console.log(evt);
+                if (evt.y >= 307 && evt.y <= 808) {
+                    this.title = evt.y - 307;
+                }
+            }
+        }
+
+        initLegend();
+    </script>
+}

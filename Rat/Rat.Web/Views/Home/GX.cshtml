@@ -1,0 +1,111 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div id="map" class="map"></div>
+
+@section Scripts{
+    <script type="text/javascript">
+        var initCenter = ol.proj.fromLonLat([104.113106, 37.570693]); // 中国矩心
+        var initZoom = 5; // 初始缩放
+        var minZoom = 1;
+        var maxZoom = 19;
+        var projection = ol.proj.get('EPSG:3857'); // 投影坐标系
+        var projectionExtent = projection.getExtent(); // 投影坐标系范围
+        var projectionSize = ol.extent.getWidth(projectionExtent) / 256;
+        var resolutions = [];
+        for (var i = 0; i <= 19; i++) {
+            resolutions[i] = projectionSize / Math.pow(2, i);
+        }
+        var isGradient = true;
+        var colors = [{
+            r: 128,
+            g: 214,
+            b: 0
+        }, {
+            r: 0,
+            g: 228,
+            b: 0
+        }, {
+            r: 255,
+            g: 255,
+            b: 0
+        }, {
+            r: 255,
+            g: 126,
+            b: 0
+        }, {
+            r: 255,
+            g: 0,
+            b: 0
+        }, {
+            r: 153,
+            g: 0,
+            b: 76
+        }, {
+            r: 126,
+            g: 0,
+            b: 35
+        }, {
+            r: 108,
+            g: 0,
+            b: 8
+        }];
+        var gradients = [0, 25, 75, 125, 175, 250, 400, 500];
+        var levels = [0, 50, 100, 150, 200, 300, 500];
+        // 获取颜色
+        function getColor(lt) {
+            var r, g, b;
+            if (isGradient) {
+                for (var k = 1, l = 0; k < gradients.length; l = k++) {
+                    if (lt <= gradients[k]) {
+                        var p = (lt - gradients[l]) / (gradients[k] - gradients[l]);
+                        r = colors[l].r + Math.round(p * (colors[k].r - colors[l].r));
+                        g = colors[l].g + Math.round(p * (colors[k].g - colors[l].g));
+                        b = colors[l].b + Math.round(p * (colors[k].b - colors[l].b));
+                        break;
+                    }
+                }
+            } else {
+                for (var k = 1; k < levels.length; k++) {
+                    if (lt <= levels[k]) {
+                        r = colors[k].r;
+                        g = colors[k].g;
+                        b = colors[k].b;
+                        break;
+                    }
+                }
+            }
+            return 'rgb(' + r + ',' + g + ',' + b + ')';
+        }
+
+        var map = new ol.Map({
+            layers: [
+                new ol.layer.Tile({
+                    source: vecSource
+                }),
+                new ol.layer.Tile({
+                    source: cvaSource
+                }),
+                new ol.layer.Image({
+                    source: windSource
+                }),
+                new ol.layer.Image({
+                    source: contourSource
+                })
+            ],
+            target: 'map',
+            controls: ol.control.defaults({
+                attributionOptions: {
+                    collapsible: false
+                }
+            }),
+            view: new ol.View({
+                center: chinaCenter,
+                zoom: initZoom,
+                minZoom: minZoom,
+                maxZoom: maxZoom
+            })
+        });
+    </script>
+}

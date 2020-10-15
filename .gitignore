@@ -5,3 +5,5 @@
 /Rat/.vs/Rat
 /Rat/Rat.Web/bin/Debug/netcoreapp3.1
 /Rat/Rat.Web/obj
+/Rat/Rat.Console/bin/Debug/netcoreapp3.1
+/Rat/Rat.Core/bin/Debug/netcoreapp3.1
