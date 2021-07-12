@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "9tr1prQqrysVHzhcAYvX81fzvYZhvosZzq8eHLubSToKomMysxbxidtb99EovhjEXETCEXjrZIJZQqHE7YmGcA==",
+  "dgSpecHash": "uwhvGNONy/TQ23qvm5dZp3+AqaJ0ytJ10Ru1XT5/IeTib70gvry0l5pUByyETww2mkNm2TflasWymoJ5R7fyQA==",
   "success": true,
-  "projectFilePath": "D:\\GitHub\\Rat\\Rat\\Rat.Core\\Rat.Core.csproj",
+  "projectFilePath": "D:\\SourceCodes\\GitHub\\Rat\\Rat\\Rat.Core\\Rat.Core.csproj",
   "expectedPackageFiles": [],
   "logs": []
 }

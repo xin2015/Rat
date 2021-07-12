@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\GitHub\\Rat\\Rat\\Rat.Console\\Rat.Console.csproj": {}
+    "D:\\SourceCodes\\GitHub\\Rat\\Rat\\Rat.Console\\Rat.Console.csproj": {}
   },
   "projects": {
-    "D:\\GitHub\\Rat\\Rat\\Rat.Console\\Rat.Console.csproj": {
+    "D:\\SourceCodes\\GitHub\\Rat\\Rat\\Rat.Console\\Rat.Console.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\GitHub\\Rat\\Rat\\Rat.Console\\Rat.Console.csproj",
+        "projectUniqueName": "D:\\SourceCodes\\GitHub\\Rat\\Rat\\Rat.Console\\Rat.Console.csproj",
         "projectName": "Rat.Console",
-        "projectPath": "D:\\GitHub\\Rat\\Rat\\Rat.Console\\Rat.Console.csproj",
+        "projectPath": "D:\\SourceCodes\\GitHub\\Rat\\Rat\\Rat.Console\\Rat.Console.csproj",
         "packagesPath": "C:\\Users\\LiuHa\\.nuget\\packages\\",
-        "outputPath": "D:\\GitHub\\Rat\\Rat\\Rat.Console\\obj\\",
+        "outputPath": "D:\\SourceCodes\\GitHub\\Rat\\Rat\\Rat.Console\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\LiuHa\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -22,13 +22,15 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "http://10.10.204.172:8081/repository/nuget-group/": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "netcoreapp3.1": {
+            "targetAlias": "netcoreapp3.1",
             "projectReferences": {
-              "D:\\GitHub\\Rat\\Rat\\Rat.Core\\Rat.Core.csproj": {
-                "projectPath": "D:\\GitHub\\Rat\\Rat\\Rat.Core\\Rat.Core.csproj"
+              "D:\\SourceCodes\\GitHub\\Rat\\Rat\\Rat.Core\\Rat.Core.csproj": {
+                "projectPath": "D:\\SourceCodes\\GitHub\\Rat\\Rat\\Rat.Core\\Rat.Core.csproj"
               }
             }
           }
@@ -41,6 +43,7 @@
       },
       "frameworks": {
         "netcoreapp3.1": {
+          "targetAlias": "netcoreapp3.1",
           "dependencies": {
             "System.Drawing.Common": {
               "target": "Package",
@@ -62,18 +65,18 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.403\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.301\\RuntimeIdentifierGraph.json"
         }
       }
     },
-    "D:\\GitHub\\Rat\\Rat\\Rat.Core\\Rat.Core.csproj": {
+    "D:\\SourceCodes\\GitHub\\Rat\\Rat\\Rat.Core\\Rat.Core.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\GitHub\\Rat\\Rat\\Rat.Core\\Rat.Core.csproj",
+        "projectUniqueName": "D:\\SourceCodes\\GitHub\\Rat\\Rat\\Rat.Core\\Rat.Core.csproj",
         "projectName": "Rat.Core",
-        "projectPath": "D:\\GitHub\\Rat\\Rat\\Rat.Core\\Rat.Core.csproj",
+        "projectPath": "D:\\SourceCodes\\GitHub\\Rat\\Rat\\Rat.Core\\Rat.Core.csproj",
         "packagesPath": "C:\\Users\\LiuHa\\.nuget\\packages\\",
-        "outputPath": "D:\\GitHub\\Rat\\Rat\\Rat.Core\\obj\\",
+        "outputPath": "D:\\SourceCodes\\GitHub\\Rat\\Rat\\Rat.Core\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\LiuHa\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -84,10 +87,12 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "http://10.10.204.172:8081/repository/nuget-group/": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "netcoreapp3.1": {
+            "targetAlias": "netcoreapp3.1",
             "projectReferences": {}
           }
         },
@@ -99,6 +104,7 @@
       },
       "frameworks": {
         "netcoreapp3.1": {
+          "targetAlias": "netcoreapp3.1",
           "imports": [
             "net461",
             "net462",
@@ -114,7 +120,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.403\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.301\\RuntimeIdentifierGraph.json"
         }
       }
     }

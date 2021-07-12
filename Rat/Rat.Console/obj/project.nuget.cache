@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "TY1xonX43Dod97jXXr5yXLvcIbp8+udrIRkL+vyrxAMot0uZZQ1Up05+6KhJDNIqa8jZVOYPb1hXcIfhKMwruw==",
+  "dgSpecHash": "c9fqBg7w2POof3RHdr7EBJBYr5sCzvmmYu+hp7+2JMJI5lj4I1tWPFWBtKsOcr9qK7OMsUNDKlg3vIad2OT7+A==",
   "success": true,
-  "projectFilePath": "D:\\GitHub\\Rat\\Rat\\Rat.Console\\Rat.Console.csproj",
+  "projectFilePath": "D:\\SourceCodes\\GitHub\\Rat\\Rat\\Rat.Console\\Rat.Console.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\LiuHa\\.nuget\\packages\\microsoft.netcore.platforms\\3.1.0\\microsoft.netcore.platforms.3.1.0.nupkg.sha512",
     "C:\\Users\\LiuHa\\.nuget\\packages\\microsoft.win32.systemevents\\4.7.0\\microsoft.win32.systemevents.4.7.0.nupkg.sha512",

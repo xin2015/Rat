@@ -12,5 +12,25 @@ namespace Rat.Web.Controllers
         {
             return View();
         }
+
+        public IActionResult Temp()
+        {
+            return View();
+        }
+
+        public IActionResult Render()
+        {
+            return View();
+        }
+
+        public IActionResult Render2()
+        {
+            return View();
+        }
+
+        public IActionResult Render3()
+        {
+            return View();
+        }
     }
 }
