@@ -1,0 +1,253 @@
+﻿@{
+    ViewData["Title"] = "Index";
+}
+
+<link rel="stylesheet" href="https://openlayers.org/en/v4.6.5/css/ol.css" type="text/css">
+<div id="map" class="map" style="width:1920px;height:1080px;"></div>
+<canvas id="legend" class="legend"></canvas>
+
+@section Scripts{
+    <script src="https://openlayers.org/en/v4.6.5/build/ol.js"></script>
+    <script type="text/javascript">
+        //var chinaCenter = ol.proj.fromLonLat([104.113106, 37.570693]); // 中国矩心
+        var chinaCenter = ol.proj.fromLonLat([91.179536, 29.660427]); // 西藏
+        var initZoom = 6; // 初始缩放
+        var projection = ol.proj.get('EPSG:3857'); // 投影坐标系
+        var projectionExtent = projection.getExtent(); // 投影坐标系范围
+        var projectionSize = ol.extent.getWidth(projectionExtent) / 256;
+        var minZoom = 1;
+        var maxZoom = 19;
+        var resolutions = [];
+        for (var i = 0; i <= 19; i++) {
+            resolutions[i] = projectionSize / Math.pow(2, i);
+        }
+        var wrapX = true;
+        var map;
+        var array = [];
+        var index = 0;
+        function getJsonData(url) {
+            var request = new XMLHttpRequest();
+            request.open("get", url);
+            request.send(null);
+            request.onload = function () {
+                if (request.status == 200) {
+                    array[index++] = JSON.parse(request.responseText);
+                    if (index == 3) {
+                        renderSource.refresh();
+                    }
+                }
+            }
+        }
+        getJsonData("/json/lon.json");
+        getJsonData("/json/lat.json");
+        getJsonData("/json/precipation.json");
+        var isGradient = true;
+        var colors = [{
+            r: 128,
+            g: 214,
+            b: 0
+        }, {
+            r: 0,
+            g: 228,
+            b: 0
+        }, {
+            r: 255,
+            g: 255,
+            b: 0
+        }, {
+            r: 255,
+            g: 126,
+            b: 0
+        }, {
+            r: 255,
+            g: 0,
+            b: 0
+        }, {
+            r: 153,
+            g: 0,
+            b: 76
+        }, {
+            r: 126,
+            g: 0,
+            b: 35
+        }, {
+            r: 108,
+            g: 0,
+            b: 8
+        }];
+        var gradients = [0, 3, 6, 9, 12, 15, 18, 21];
+        var levels = [0, 50, 100, 150, 200, 300, 500];
+        // 获取颜色
+        function getColor(lt) {
+            var r, g, b;
+            if (isGradient) {
+                for (var k = 1, l = 0; k < gradients.length; l = k++) {
+                    if (lt <= gradients[k]) {
+                        var p = (lt - gradients[l]) / (gradients[k] - gradients[l]);
+                        r = colors[l].r + Math.round(p * (colors[k].r - colors[l].r));
+                        g = colors[l].g + Math.round(p * (colors[k].g - colors[l].g));
+                        b = colors[l].b + Math.round(p * (colors[k].b - colors[l].b));
+                        break;
+                    }
+                }
+            } else {
+                for (var k = 1; k < levels.length; k++) {
+                    if (lt <= levels[k]) {
+                        r = colors[k].r;
+                        g = colors[k].g;
+                        b = colors[k].b;
+                        break;
+                    }
+                }
+            }
+            return 'rgb(' + r + ',' + g + ',' + b + ')';
+        }
+        var vecSource = new ol.source.TileImage({
+            projection: projection,
+            tileGrid: new ol.tilegrid.TileGrid({
+                extent: projectionExtent,
+                minZoom: 1,
+                origin: ol.extent.getTopLeft(projectionExtent),
+                resolutions: resolutions,
+                tileSize: [256, 256]
+            }),
+            url: 'http://t{0-7}.tianditu.gov.cn/vec_w/wmts?tk=fdcab2d88e293c189daf038cd01592e6&layer=vec&style=default&tilematrixset=w&Service=WMTS&Request=GetTile&Version=1.0.0&Format=tiles&TileMatrix={z}&TileCol={x}&TileRow={y}',
+            wrapX: wrapX
+        });
+        var cvaSource = new ol.source.TileImage({
+            projection: projection,
+            tileGrid: new ol.tilegrid.TileGrid({
+                extent: projectionExtent,
+                minZoom: 1,
+                origin: ol.extent.getTopLeft(projectionExtent),
+                resolutions: resolutions,
+                tileSize: [256, 256]
+            }),
+            url: 'http://t{0-7}.tianditu.gov.cn/cva_w/wmts?tk=fdcab2d88e293c189daf038cd01592e6&layer=cva&style=default&tilematrixset=w&Service=WMTS&Request=GetTile&Version=1.0.0&Format=tiles&TileMatrix={z}&TileCol={x}&TileRow={y}',
+            wrapX: wrapX
+        });
+
+        // 双线性插值
+        function bilinearInterpolate(x, y, g00, g10, g01, g11) {
+            var rx = (1 - x);
+            var ry = (1 - y);
+            var a = rx * ry,
+                b = x * ry,
+                c = rx * y,
+                d = x * y;
+            return g00 * a + g10 * b + g01 * c + g11 * d;
+        }
+
+        var renderSource = new ol.source.ImageCanvas({
+            canvasFunction: (extent, resolution, pixelRatio, size, projection) => {
+                console.time("ImageCanvas");
+                var canvas = document.createElement('canvas');
+                canvas.width = Math.round(size[0]);
+                canvas.height = Math.round(size[1]);
+                var ctx = canvas.getContext("2d");
+                ctx.scale(pixelRatio, pixelRatio);
+                if (index == 3) {
+                    var zoom = map.getView().getZoom();
+                    var lonData = array[0];
+                    var latData = array[1];
+                    var precipationData = array[2];
+                    var dataResolution = Math.pow(2, initZoom - zoom) * precipationData.Resolution * 0.66;
+                    var v = [];
+                    for (var x = precipationData.Extent[0]; x <= precipationData.Extent[2]; x += dataResolution) {
+                        for (var y = precipationData.Extent[1]; y <= precipationData.Extent[3]; y += dataResolution) {
+                            var xp = (x - precipationData.Extent[0]) / precipationData.Resolution;
+                            var yp = (y - precipationData.Extent[1]) / precipationData.Resolution;
+                            var xi = Math.floor(xp);
+                            var yi = Math.floor(yp);
+                            var no00 = xi * 141 + yi;
+                            var no10 = (xi + 1) * 141 + yi;
+                            var no01 = xi * 141 + yi + 1;
+                            var no11 = (xi + 1) * 141 + yi + 1;
+                            var point = ol.proj.fromLonLat([bilinearInterpolate(xp - xi, yp - yi, lonData.Data[no00], lonData.Data[no10], lonData.Data[no01], lonData.Data[no11]), bilinearInterpolate(xp - xi, yp - yi, latData.Data[no00], latData.Data[no10], latData.Data[no01], latData.Data[no11])]);
+                            var pixel = [Math.round((point[0] - extent[0]) / resolution), Math.round((extent[3] - point[1]) / resolution)];
+                            if (pixel[0] >= 0 && pixel[0] < canvas.width && pixel[1] >= 0 && pixel[1] < canvas.height) {
+                                if (!v[pixel[1] * canvas.width + pixel[0]]) {
+                                    ctx.fillStyle = getColor(bilinearInterpolate(xp - xi, yp - yi, precipationData.Data[no00], precipationData.Data[no10], precipationData.Data[no01], precipationData.Data[no11]));
+                                    ctx.fillRect(Math.round(pixel[0]), Math.round(pixel[1]), 1, 1);
+                                    v[pixel[1] * canvas.width + pixel[0]] = true;
+                                }
+                            }
+                        }
+                    }
+                }
+                console.timeEnd("ImageCanvas");
+                return canvas;
+            },
+            ratio: 1
+        });
+
+        map = new ol.Map({
+            layers: [
+                new ol.layer.Tile({
+                    source: vecSource
+                }),
+                new ol.layer.Tile({
+                    source: cvaSource
+                }),
+                //new ol.layer.Tile({
+                //    source: tileSource
+                //}),
+                new ol.layer.Image({
+                    source: renderSource
+                })
+            ],
+            target: 'map',
+            controls: ol.control.defaults({ attribution: false }),
+            view: new ol.View({
+                center: chinaCenter,
+                zoom: initZoom,
+                minZoom: minZoom,
+                maxZoom: maxZoom
+            })
+        });
+
+        function initLegend() {
+            var canvas = document.getElementById('legend');
+            canvas.width = 32;
+            canvas.height = 516;
+            var ctx = canvas.getContext("2d");
+            var grd = ctx.createLinearGradient(0, 8, 0, 508);
+            grd.addColorStop(0, 'rgb(128,214,0)');
+            grd.addColorStop(0.05, 'rgb(0,228,0)');
+            grd.addColorStop(0.15, 'rgb(255,255,0)');
+            grd.addColorStop(0.25, 'rgb(255,126,0)');
+            grd.addColorStop(0.35, 'rgb(255,0,0)');
+            grd.addColorStop(0.5, 'rgb(153,0,76)');
+            grd.addColorStop(0.8, 'rgb(126,0,35)');
+            grd.addColorStop(1, 'rgb(108,0,8)');
+
+            ctx.shadowBlur = 10;
+            ctx.shadowOffsetX = 2;
+            ctx.shadowOffsetY = 2;
+            ctx.shadowColor = "black";
+            ctx.fillStyle = grd;
+            ctx.fillRect(0, 0, 32, 516);
+
+            ctx.fillStyle = 'rgb(255,255,255)';
+            ctx.font = '16px sans-serif';
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText('0', 16, 8);
+            ctx.fillText('50', 16, 58);
+            ctx.fillText('100', 16, 108);
+            ctx.fillText('150', 16, 158);
+            ctx.fillText('200', 16, 208);
+            ctx.fillText('300', 16, 308);
+            ctx.fillText('500', 16, 508);
+
+            canvas.onmousemove = function (evt) {
+                console.log(evt);
+                if (evt.y >= 307 && evt.y <= 808) {
+                    this.title = evt.y - 307;
+                }
+            }
+        }
+
+        initLegend();
+    </script>
+}

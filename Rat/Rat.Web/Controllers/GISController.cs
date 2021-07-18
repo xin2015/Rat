@@ -32,5 +32,20 @@ namespace Rat.Web.Controllers
         {
             return View();
         }
+
+        public IActionResult XiZang()
+        {
+            return View();
+        }
+
+        public IActionResult XiZang2()
+        {
+            return View();
+        }
+
+        public IActionResult XiZang3()
+        {
+            return View();
+        }
     }
 }
