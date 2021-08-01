@@ -1,0 +1,22 @@
+﻿@{
+    ViewData["Title"] = "Test";
+}
+
+@section Scripts{
+    <script src="~/js/rat-basicLinear.js"></script>
+    <script src="~/js/rat-linear.js"></script>
+    <script type="text/javascript">
+        var basicLinear = rat.basicLinear();
+        basicLinear.init(25, 75);
+        basicLinear.train(0);
+        console.log(basicLinear.predict(0, 255));
+        console.log(basicLinear.predict(228, 255));
+        console.log(basicLinear.predict(0, 0));
+        var linear = rat.linear();
+        linear.init([25, 75, 125, 175, 250, 400]);
+        linear.train(0);
+        console.log(linear.predict([0, 255, 255, 255, 153, 126]));
+        console.log(linear.predict([228, 255, 126, 0, 0, 0]));
+        console.log(linear.predict([0, 0, 0, 0, 76, 35]));
+    </script>
+}
